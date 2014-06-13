@@ -65,7 +65,8 @@
     
 - name: ensure expected organizational units are present
   ldap:
-    ldap_uri: ldapi:///
+    bind_dn: cn=admin,{{ slapd_base_dn }}
+    bind_password: "{{ slapd_admin_password }}" 
     entry_dn: ou={{ item }},{{ slapd_base_dn }}
     attrs:
       - objectClass: organizationalUnit
