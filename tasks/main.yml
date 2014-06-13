@@ -1,4 +1,35 @@
 ---
+- name: configure ldap domain
+  debconf:
+    name: slapd
+    question: slapd/domain
+    vtype: string
+    value: "{{ slapd_domain }}"
+
+- name: configure ldap organization
+  debconf:
+    name: slapd
+    question: shared/organization
+    vtype: string
+    value: "{{ slapd_domain }}"
+
+# can we just force password here?
+- name: configure ldap passwd 1
+  debconf:
+    name: slapd
+    question: slapd/password1
+    vtype: password
+    value: "{{ slapd_admin_password }}"
+  changed_when: false
+
+- name: configure ldap passwd 2
+  debconf:
+    name: slapd
+    question: slapd/password2
+    vtype: password
+    value: "{{ slapd_admin_password }}"
+  changed_when: false
+
 - name: ensure required base packages are present
   apt: 
     pkg: "{{ item }}" 
@@ -32,17 +63,10 @@
     state: started
     enabled: yes
     
-- name: ensure root dn and root password are set to desired values
-  ldap:
-    entry_dn: olcDatabase={1}hdb,cn=config
-    attrs:
-      - olcRootDN: "{{ slapd_admin_dn }}"
-      - olcRootPW: "{{ slapd_admin_password }}"
-    state: present
-
 - name: ensure expected organizational units are present
   ldap:
-    entry_dn: ou={{ item }},{{ ldap_base_dn }}
+    ldap_uri: ldapi:///
+    entry_dn: ou={{ item }},{{ slapd_base_dn }}
     attrs:
       - objectClass: organizationalUnit
       - ou: "{{ item }}"

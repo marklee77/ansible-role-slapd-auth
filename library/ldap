@@ -109,7 +109,8 @@ def _get_entry(module, cmdparams, entry_dn):
         module.fail_json(msg=err)
 
     return [tuple(x.strip() for x in line.split(':', 1)) 
-            for line in out.splitlines() if line.strip() != ""]
+            for line in out.replace('\n ', '').splitlines() 
+            if line.strip() != ""]
 
 
 def _add_entry(module, cmdparams, curr):
@@ -137,9 +138,10 @@ def _modify_entry(module, cmdparams, prev, curr):
 
     changes = []
 
+    # FIXME: possible syntax problem here...
     # delete keys that are no longer in curr
-    for k in pkset - set(cdict):
-        changes.append("delete: %s" % (k))
+    #for k in pkset - set(cdict):
+    #    changes.append("delete: %s" % (k))
 
     # just replace all curr values (seems easiest)
     for k, vl in cdict.items():
@@ -149,6 +151,8 @@ def _modify_entry(module, cmdparams, prev, curr):
         changes.append(change)
 
     data += "\n-\n".join(changes)
+
+    module.fail_json(msg=data)
 
     cmd = ["echo", pipes.quote(data), "|", 
             module.get_bin_path('ldapmodify', True)] + cmdparams

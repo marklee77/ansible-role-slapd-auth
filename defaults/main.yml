@@ -1,6 +1,6 @@
 ---
 slapd_run_dir: "{{ lookup('env', 'PWD') }}"
 
-slapd_base_dn: dc=nodomain
-slapd_admin_dn: cn=admin,{{ slapd_base_dn }}
-slapd_admin_password: {SSHA}2LYHx+VqyRyShAlRa0gRnNm/tzHaOQFj
+slapd_domain: localdomain
+slapd_base_dn: dc=localdomain
+slapd_admin_password: password
