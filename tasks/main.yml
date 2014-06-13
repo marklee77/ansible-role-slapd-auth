@@ -1,81 +1,53 @@
 ---
-- name: ensure required mariadb prerequisite packages are installed
+- name: ensure required base packages are present
   apt: 
-    pkg: "{{ item }}"
+    pkg: "{{ item }}" 
     state: latest 
     update_cache: yes 
     cache_valid_time: 600
   with_items:
-    - python-software-properties
+    - slapd
+    - ldap-utils
+    - ldapscripts
 
-- name: ensure mariadb repository public key is installed
-  register: apt_key
-  command: apt-key adv --recv-key --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
-  changed_when: apt_key.stderr.find("imported") != -1
+- name: update /etc/ldapscripts/ldapscripts.conf from template
+  template:
+    src: templates/etc/ldapscripts/ldapscripts.conf
+    dest: /etc/ldapscripts/ldapscripts.conf
+    owner: root
+    group: root
+    mode: 0644
 
-- name: ensure mariadb repository is enabled
-  apt_repository: 
-    repo: deb {{ mariadb_repository_mirror }}/repo/{{ mariadb_version }}/ubuntu {{ ansible_distribution_release }} main
-    update_cache: yes
-    state: present
-
-- name: ensure mariadb packages and ansible dependencies are installed
-  apt: 
-    pkg: "{{ item }}"
-    state: latest 
-    update_cache: yes 
-    cache_valid_time: 600
-  with_items:
-    - mariadb-server
-    - mariadb-client
-    - python-mysqldb
-
-- name: ensure mariadb is started and enabled
-  service: 
-    name: mysql
-    state: started 
-    enabled: yes
-
-- name: update mariadb root password for all root accounts
-  mysql_user: 
-    name: root 
-    host: localhost 
-    password: "{{ mariadb_root_mysql_password }}"
-    priv: "*.*:ALL,GRANT"
-    state: present
-
-# Need to do this for idempotency, see
-# http://ansible.cc/docs/modules.html#mysql-user
-- name: update .my.cnf file with root password credentials
-  template: 
-    src: root/.my.cnf 
-    dest: /root/.my.cnf 
-    owner: root 
-    group: root 
+- name: update /etc/ldapscripts/ldapscripts.passwd from template
+  template:
+    src: templates/etc/ldapscripts/ldapscripts.passwd
+    dest: /etc/ldapscripts/ldapscripts.passwd
+    owner: root
+    group: root
     mode: 0600
 
-- name: update mariadb root password for all root accounts
-  mysql_user: 
-    name: root 
-    host: "{{ item }}" 
-    password: "{{ mariadb_root_mysql_password }}" 
-    priv: "*.*:ALL,GRANT"
+- name: ensure slapd is started and enabled
+  service:
+    name: slapd
+    state: started
+    enabled: yes
+    
+- name: ensure root dn and root password are set to desired values
+  ldap:
+    entry_dn: olcDatabase={1}hdb,cn=config
+    attrs:
+      - olcRootDN: "{{ slapd_admin_dn }}"
+      - olcRootPW: "{{ slapd_admin_password }}"
+    state: present
+
+- name: ensure expected organizational units are present
+  ldap:
+    entry_dn: ou={{ item }},{{ ldap_base_dn }}
+    attrs:
+      - objectClass: organizationalUnit
+      - ou: "{{ item }}"
     state: present
   with_items:
-    - "{{ ansible_hostname }}"
-    - 127.0.0.1
-    - ::1
-
-- name: ensure anonymous users are not in the database
-  mysql_user: 
-    name: "" 
-    host: "{{ item }}"
-    state: absent
-  with_items:
-    - "{{ ansible_hostname }}"
-    - "{{ inventory_hostname }}"
-    - localhost
-    - 127.0.0.1
-    - ::1
-    - "%"
-
+    - Users
+    - Groups
+    - Machines
