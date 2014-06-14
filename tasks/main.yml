@@ -40,9 +40,10 @@
     update_cache: yes 
     cache_valid_time: 600
   with_items:
-    - slapd
     - ldap-utils
     - ldapscripts
+    - slapd
+    - ssl-cert
 
 # FIXME: dpkg seems broken
 #- name: enforce desired slapd package configuration
@@ -78,8 +79,9 @@
     mode: 0644
 
 - name: ensure ssl key and certificate are configured when specified
-  shell: ldapmodify -Y EXTERNAL -H ldapi:/// -f /etc/ldap/certinfo.ldif
+  shell: ldapmodify -QY EXTERNAL -H ldapi:/// -f /etc/ldap/certinfo.ldif
   register: add_certificate_configuration
+  failed_when: add_certificate_configuration.rc !=0 and add_certificate_configuration.rc != 18
   changed_when: add_certificate_configuration.rc == 0
   when: slapd_ssl_cert_file != "" and slapd_ssl_key_file != "" 
 

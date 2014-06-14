@@ -12,12 +12,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     auto_correct: true
 
   config.vm.provider "virtualbox" do |v|
-    v.memory = 1024
+    v.memory = 1280
   end
 
-  #config.vm.provision "ansible" do |ansible|
-  #  ansible.playbook = "getroles.yml"
-  #end
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "getroles.yml"
+  end
 
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "site.yml"
