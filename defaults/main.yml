@@ -1,6 +1,14 @@
 ---
 slapd_run_dir: "{{ lookup('env', 'PWD') }}"
 
-slapd_domain: localdomain
-slapd_base_dn: dc=localdomain
-slapd_admin_password: password
+slapd_ssl_cert_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
+slapd_ssl_key_file: /etc/ssl/private/ssl-cert-snakeoil.key
+
+ldap_ldap_port: 389
+ldap_ldaps_port: 689
+ldap_require_ssl: true
+
+ldap_domain: localdomain
+ldap_base_dn: dc=localdomain
+ldap_admin_password: password
+
