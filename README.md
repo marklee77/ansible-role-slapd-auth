@@ -1,25 +1,31 @@
-marklee77.mariadb
-=================
+marklee77.slapd-auth
+====================
 
-[![Build Status](https://travis-ci.org/marklee77/ansible-role-mariadb.svg?branch=master)](https://travis-ci.org/marklee77/ansible-role-mariadb)
-
-MariaDB role for Ubuntu.
+Role to deploy slapd as auth server.
 
 Role Variables
 --------------
 
-- mariadb_repository_mirror: mariadb repository mirror, set to 
-                             http://mirrors.coreix.net/mariadb by default.
-- mariadb_version: mariadb version, set to 10.0 by default.
-- mariadb_root_mysql_password: root mysql password; set to a random value by 
-                               default.
+- slapd_bind_address: 127.0.0.1
+- slapd_ssl_cert_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
+- slapd_ssl_key_file: /etc/ssl/private/ssl-cert-snakeoil.key
+
+- ldap_ldap_port: 389
+- ldap_ldaps_port: 689
+- ldap_enable_ssl: true
+- ldap_require_ssl: true
+
+- ldap_domain: localdomain
+- ldap_base_dn: dc=localdomain
+- ldap_admin_password: password
 
 Example Playbook
 -------------------------
 
-    - hosts: all
-      roles:
-        - marklee77.mariadb
+- hosts: all
+  sudo: True
+  roles:
+    - marklee77.slapd-auth
 
 License
 -------

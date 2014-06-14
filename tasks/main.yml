@@ -4,30 +4,33 @@
     name: slapd
     question: slapd/domain
     vtype: string
-    value: "{{ slapd_domain }}"
+    value: "{{ ldap_domain }}"
 
 - name: configure ldap organization
   debconf:
     name: slapd
     question: shared/organization
     vtype: string
-    value: "{{ slapd_domain }}"
+    value: "{{ ldap_domain }}"
 
-# can we just force password here?
+# cannot retrieve original value and will not change password without force, so
+# report no change.
 - name: configure ldap passwd 1
   debconf:
     name: slapd
     question: slapd/password1
     vtype: password
-    value: "{{ slapd_admin_password }}"
+    value: "{{ ldap_admin_password }}"
   changed_when: false
 
+# cannot retrieve original value and will not change password without force, so
+# report no change.
 - name: configure ldap passwd 2
   debconf:
     name: slapd
     question: slapd/password2
     vtype: password
-    value: "{{ slapd_admin_password }}"
+    value: "{{ ldap_admin_password }}"
   changed_when: false
 
 - name: ensure required base packages are present
@@ -57,6 +60,15 @@
     group: root
     mode: 0600
 
+# FIXME: dpkg seems broken
+#- name: enforce desired slapd package configuration
+#  dpkg_reconfigure:
+#    pkg: slapd
+#    answers:
+#      slapd/domain: "{{ ldap_domain }}"
+#      slapd/password1: "{{ ldap_admin_password }}"
+#      slapd/password2: "{{ ldap_admin_password }}"
+
 - name: ensure slapd is started and enabled
   service:
     name: slapd
@@ -65,9 +77,9 @@
     
 - name: ensure expected organizational units are present
   ldap:
-    bind_dn: cn=admin,{{ slapd_base_dn }}
-    bind_password: "{{ slapd_admin_password }}" 
-    entry_dn: ou={{ item }},{{ slapd_base_dn }}
+    bind_dn: cn=admin,{{ ldap_base_dn }}
+    bind_password: "{{ ldap_admin_password }}" 
+    entry_dn: ou={{ item }},{{ ldap_base_dn }}
     attrs:
       - objectClass: organizationalUnit
       - ou: "{{ item }}"
