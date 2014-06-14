@@ -44,22 +44,6 @@
     - ldap-utils
     - ldapscripts
 
-- name: update /etc/ldapscripts/ldapscripts.conf from template
-  template:
-    src: templates/etc/ldapscripts/ldapscripts.conf
-    dest: /etc/ldapscripts/ldapscripts.conf
-    owner: root
-    group: root
-    mode: 0644
-
-- name: update /etc/ldapscripts/ldapscripts.passwd from template
-  template:
-    src: templates/etc/ldapscripts/ldapscripts.passwd
-    dest: /etc/ldapscripts/ldapscripts.passwd
-    owner: root
-    group: root
-    mode: 0600
-
 # FIXME: dpkg seems broken
 #- name: enforce desired slapd package configuration
 #  dpkg_reconfigure:
@@ -69,12 +53,36 @@
 #      slapd/password1: "{{ ldap_admin_password }}"
 #      slapd/password2: "{{ ldap_admin_password }}"
 
+- name: update /etc/default/slapd from template
+  template:
+    src: etc/default/slapd
+    dest: /etc/default/slapd
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart slapd
+
 - name: ensure slapd is started and enabled
   service:
     name: slapd
     state: started
     enabled: yes
     
+- name: update /etc/ldap/certinfo.ldif from template
+  template:
+    src: etc/ldap/certinfo.ldif
+    dest: /etc/ldap/certinfo.ldif
+    owner: root
+    group: root
+    mode: 0644
+
+- name: ensure ssl key and certificate are configured when specified
+  shell: ldapmodify -Y EXTERNAL -H ldapi:/// -f /etc/ldap/certinfo.ldif
+  register: add_certificate_configuration
+  changed_when: add_certificate_configuration.rc == 0
+  when: slapd_ssl_cert_file != "" and slapd_ssl_key_file != "" 
+
 - name: ensure expected organizational units are present
   ldap:
     bind_dn: cn=admin,{{ ldap_base_dn }}
@@ -88,3 +96,20 @@
     - Users
     - Groups
     - Machines
+
+- name: update /etc/ldapscripts/ldapscripts.conf from template
+  template:
+    src: etc/ldapscripts/ldapscripts.conf
+    dest: /etc/ldapscripts/ldapscripts.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: update /etc/ldapscripts/ldapscripts.passwd from template
+  template:
+    src: etc/ldapscripts/ldapscripts.passwd
+    dest: /etc/ldapscripts/ldapscripts.passwd
+    owner: root
+    group: root
+    mode: 0600
+

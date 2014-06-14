@@ -1,0 +1,13 @@
+dn: cn=config
+add: olcTLSCipherSuite
+olcTLSCipherSuite: HIGH:!aNULL:!MD5
+-
+add: olcTLSCACertificateFile
+olcTLSCACertificateFile: /etc/ssl/certs/ca-certificates.crt
+-
+add: olcTLSCertificateFile
+olcTLSCertificateFile: "{{ slapd_ssl_cert_file }}"
+-
+add: olcTLSCertificateKeyFile
+olcTLSCertificateKeyFile: "{{ slapd_ssl_key_file }}"
+ 
