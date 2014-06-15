@@ -2,6 +2,8 @@
 slapd_run_dir: "{{ lookup('env', 'PWD') }}"
 
 slapd_services: "ldap:/// ldapi:///"
+slapd_ssl_cipher_suite: NORMAL
+slapd_ssl_ca_cert_file: /etc/ssl/certs/ca-certificates.crt
 slapd_ssl_cert_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
 slapd_ssl_key_file: /etc/ssl/private/ssl-cert-snakeoil.key
 

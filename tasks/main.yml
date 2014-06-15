@@ -51,18 +51,29 @@
 #    pkg: slapd
 #    answers:
 #      slapd/domain: "{{ ldap_domain }}"
+#      shared/organization: "{{ ldap_domain }}"
 #      slapd/password1: "{{ ldap_admin_password }}"
 #      slapd/password2: "{{ ldap_admin_password }}"
 
-- name: update /etc/default/slapd from template
-  template:
-    src: etc/default/slapd
+# FIXME: just set lineinfile...
+#- name: update /etc/default/slapd from template
+#  template:
+#    src: etc/default/slapd
+#    dest: /etc/default/slapd
+#    owner: root
+#    group: root
+#    mode: 0644
+#  notify:
+#    - restart slapd
+
+- name: enforce slapd services
+  lineinfile:
     dest: /etc/default/slapd
-    owner: root
-    group: root
-    mode: 0644
+    regexp: '^SLAPD_SERVICES='
+    line: 'SLAPD_SERVICES="{{ slapd_services }}"'
   notify:
     - restart slapd
+ 
 
 - name: ensure slapd is started and enabled
   service:
@@ -70,27 +81,49 @@
     state: started
     enabled: yes
     
-- name: update /etc/ldap/certinfo.ldif from template
-  template:
-    src: etc/ldap/certinfo.ldif
-    dest: /etc/ldap/certinfo.ldif
-    owner: root
-    group: root
-    mode: 0644
+#- olcTLSCipherSuite: "{{ slapd_ssl_cipher_suite }}"
+- name: ensure ssl is configured if certificates are configured
+  ldap:
+    entry_dn: cn=config
+    replace_attributes:
+      - olcTLSCACertificateFile: "{{ slapd_ssl_ca_cert_file }}"
+      - olcTLSCertificateFile: "{{ slapd_ssl_cert_file }}"
+      - olcTLSCertificateKeyFile: "{{ slapd_ssl_key_file }}"
+    state: present
+  notify:
+    - restart slapd
+  when: slapd_ssl_cert_file != "" and slapd_ssl_key_file != ""
 
-- name: ensure ssl key and certificate are configured when specified
-  shell: ldapmodify -QY EXTERNAL -H ldapi:/// -f /etc/ldap/certinfo.ldif
-  register: add_certificate_configuration
-  failed_when: add_certificate_configuration.rc !=0 and add_certificate_configuration.rc != 18
-  changed_when: add_certificate_configuration.rc == 0
-  when: slapd_ssl_cert_file != "" and slapd_ssl_key_file != "" 
+- name: ensure ssl is not configured if certificates are not configured
+  ldap:
+    entry_dn: cn=config
+    delete_attributes:
+      - olcTLSCipherSuite
+      - olcTLSCACertificateFile
+      - olcTLSCertificateFile
+      - olcTLSCertificateKeyFile
+    state: present
+  notify:
+    - restart slapd
+  when: slapd_ssl_cert_file == "" or slapd_ssl_key_file == ""
+
+- name: enforce secure connections
+  ldap:
+    entry_dn: cn=config
+    replace_attributes:
+      - olcLocalSSF: 256 
+      - olcSecurity: ssf=256 update_tls=256
+    state: present
+  notify:
+    - restart slapd
+  when: ldap_require_ssl
 
 - name: ensure expected organizational units are present
   ldap:
     bind_dn: cn=admin,{{ ldap_base_dn }}
     bind_password: "{{ ldap_admin_password }}" 
     entry_dn: ou={{ item }},{{ ldap_base_dn }}
-    attrs:
+    add_attributes:
       - objectClass: organizationalUnit
       - ou: "{{ item }}"
     state: present
