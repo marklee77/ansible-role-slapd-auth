@@ -1,12 +1,12 @@
 ---
-- name: configure ldap domain
+- name: configure ldap domain through debconf
   debconf:
     name: slapd
     question: slapd/domain
     vtype: string
     value: "{{ ldap_domain }}"
 
-- name: configure ldap organization
+- name: configure ldap organization through debconf
   debconf:
     name: slapd
     question: shared/organization
@@ -15,7 +15,7 @@
 
 # cannot retrieve original value and will not change password without force, so
 # report no change.
-- name: configure ldap passwd 1
+- name: configure ldap password through debconf
   debconf:
     name: slapd
     question: slapd/password1
@@ -25,7 +25,7 @@
 
 # cannot retrieve original value and will not change password without force, so
 # report no change.
-- name: configure ldap passwd 2
+- name: confirm ldap password through debconf
   debconf:
     name: slapd
     question: slapd/password2
@@ -33,7 +33,7 @@
     value: "{{ ldap_admin_password }}"
   changed_when: false
 
-- name: ensure required base packages are present
+- name: ensure ldap server packages are installed
   apt: 
     pkg: "{{ item }}" 
     state: latest 
@@ -55,25 +55,22 @@
 #      slapd/password1: "{{ ldap_admin_password }}"
 #      slapd/password2: "{{ ldap_admin_password }}"
 
-# FIXME: just set lineinfile...
-#- name: update /etc/default/slapd from template
-#  template:
-#    src: etc/default/slapd
-#    dest: /etc/default/slapd
-#    owner: root
-#    group: root
-#    mode: 0644
-#  notify:
-#    - restart slapd
+- name: ensure openldap user exists and is a member of the ssl-cert group
+  user:
+    name: openldap
+    append: yes
+    groups: ssl-cert
+    state: present
+  notify:
+    - restart slapd
 
-- name: enforce slapd services
+- name: enforce slapd services in /etc/default/slapd
   lineinfile:
     dest: /etc/default/slapd
     regexp: '^SLAPD_SERVICES='
     line: 'SLAPD_SERVICES="{{ slapd_services }}"'
   notify:
     - restart slapd
- 
 
 - name: ensure slapd is started and enabled
   service:
@@ -81,11 +78,11 @@
     state: started
     enabled: yes
     
-#- olcTLSCipherSuite: "{{ slapd_ssl_cipher_suite }}"
-- name: ensure ssl is configured if certificates are configured
+- name: ensure ssl is configured in ldap if certificates are available
   ldap:
     entry_dn: cn=config
     replace_attributes:
+      - olcTLSCipherSuite: "{{ slapd_ssl_cipher_suite }}"
       - olcTLSCACertificateFile: "{{ slapd_ssl_ca_cert_file }}"
       - olcTLSCertificateFile: "{{ slapd_ssl_cert_file }}"
       - olcTLSCertificateKeyFile: "{{ slapd_ssl_key_file }}"
@@ -94,7 +91,7 @@
     - restart slapd
   when: slapd_ssl_cert_file != "" and slapd_ssl_key_file != ""
 
-- name: ensure ssl is not configured if certificates are not configured
+- name: ensure ssl is not configured in ldap if certificates are not available
   ldap:
     entry_dn: cn=config
     delete_attributes:
@@ -107,18 +104,18 @@
     - restart slapd
   when: slapd_ssl_cert_file == "" or slapd_ssl_key_file == ""
 
-- name: enforce secure connections
+- name: ensure ldap requires ssl if desired
   ldap:
     entry_dn: cn=config
     replace_attributes:
-      - olcLocalSSF: 256 
-      - olcSecurity: ssf=256 update_tls=256
+      - olcLocalSSF: 128
+      - olcSecurity: ssf=128
     state: present
   notify:
     - restart slapd
   when: ldap_require_ssl
 
-- name: ensure expected organizational units are present
+- name: ensure expected organizational units are present in ldap
   ldap:
     bind_dn: cn=admin,{{ ldap_base_dn }}
     bind_password: "{{ ldap_admin_password }}" 
