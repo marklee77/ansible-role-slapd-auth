@@ -125,9 +125,9 @@
       - ou: "{{ item }}"
     state: present
   with_items:
-    - Users
-    - Groups
-    - Machines
+    - users
+    - groups
+    - machines
 
 - name: update /etc/ldapscripts/ldapscripts.conf from template
   template:
