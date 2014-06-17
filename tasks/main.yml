@@ -81,7 +81,7 @@
 - name: ensure ssl is configured in ldap if certificates are available
   ldap:
     entry_dn: cn=config
-    replace_attributes:
+    attributes:
       - olcTLSCipherSuite: "{{ slapd_ssl_cipher_suite }}"
       - olcTLSCACertificateFile: "{{ slapd_ssl_ca_cert_file }}"
       - olcTLSCertificateFile: "{{ slapd_ssl_cert_file }}"
@@ -94,11 +94,12 @@
 - name: ensure ssl is not configured in ldap if certificates are not available
   ldap:
     entry_dn: cn=config
-    delete_attributes:
+    attributes:
       - olcTLSCipherSuite
       - olcTLSCACertificateFile
       - olcTLSCertificateFile
       - olcTLSCertificateKeyFile
+    modaction: delete
     state: present
   notify:
     - restart slapd
@@ -107,7 +108,7 @@
 - name: ensure ldap requires ssl if desired
   ldap:
     entry_dn: cn=config
-    replace_attributes:
+    attributes:
       - olcLocalSSF: 128
       - olcSecurity: ssf=128
     state: present
@@ -120,9 +121,10 @@
     bind_dn: cn=admin,{{ ldap_base_dn }}
     bind_password: "{{ ldap_admin_password }}" 
     entry_dn: ou={{ item }},{{ ldap_base_dn }}
-    add_attributes:
+    attributes:
       - objectClass: organizationalUnit
       - ou: "{{ item }}"
+    modaction: add
     state: present
   with_items:
     - users
