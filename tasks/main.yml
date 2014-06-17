@@ -134,8 +134,7 @@
  
 - name: ensure ldap membership overlay is activated for default database
   ldap:
-    entry_dn: olcOverlay=memberof,olcDatabase=hdb,cn=config
-    strip_braces: yes
+    entry_dn: olcOverlay={0}memberof,olcDatabase={1}hdb,cn=config
     attributes:
       - objectClass: olcConfig
       - objectClass: olcMemberOf
@@ -146,32 +145,35 @@
   notify:
     - restart slapd
 
-#- name: ensure ldap membership referential integrity module is enabled
-#  ldap:
-#    entry_dn: cn=module,cn=config
-#    attributes:
-#      - cn: module
-#      - objectclass: olcModuleList
-#      - objectclass: top
-#      - olcmoduleload: refint.la
-#      - olcmodulepath: /usr/lib/ldap
-#    state: present
-#  notify:
-#    - restart slapd
+- name: ensure ldap membership referential integrity module is enabled
+  ldap:
+    entry_dn: cn=module,cn=config
+    search_base: cn=config
+    search_filter: '(olcModuleLoad~=refint.la)'
+    strip_braces: yes
+    attributes:
+      - cn: module
+      - objectClass: olcModuleList
+      - objectClass: top
+      - olcModuleLoad: refint.la
+      - olcModulePath: /usr/lib/ldap
+    state: present
+  notify:
+    - restart slapd
 
-#- name: ensure ldap referential integrity overlay is activated for default database
-#  ldap:
-#    entry_dn: olcOverlay={1}refint,olcDatabase={1}hdb,cn=config
-#    attributes:
-#      - objectClass: olcConfig
-#      - objectClass: olcOverlayConfig
-#      - objectClass: olcRefintConfig
-#      - objectClass: top
-#      - olcOverlay: "{1}refint"
-#      - olcRefintAttribute: memberof member manager owner
-#    state: present
-#  notify:
-#    - restart slapd
+- name: ensure ldap referential integrity overlay is activated for default database
+  ldap:
+    entry_dn: olcOverlay={1}refint,olcDatabase={1}hdb,cn=config
+    attributes:
+      - objectClass: olcConfig
+      - objectClass: olcOverlayConfig
+      - objectClass: olcRefintConfig
+      - objectClass: top
+      - olcOverlay: '{1}refint'
+      - olcRefintAttribute: memberof member manager owner
+    state: present
+  notify:
+    - restart slapd
 
 - name: ensure expected organizational units are present in ldap
   ldap:
