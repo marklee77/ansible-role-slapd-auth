@@ -116,6 +116,63 @@
     - restart slapd
   when: ldap_require_ssl
 
+- name: ensure ldap membership overlay module is enabled
+  ldap:
+    entry_dn: cn=module,cn=config
+    attributes:
+      - cn: module
+      - objectclass: olcModuleList
+      - objectclass: top
+      - olcmoduleload: memberof.la
+      - olcmodulepath: /usr/lib/ldap
+    modaction: add
+    state: present
+  notify:
+    - restart slapd
+ 
+- name: ensure ldap membership overlay is activated for default database
+  ldap:
+    entry_dn: olcOverlay={0}memberof,olcDatabase={1}hdb,cn=config
+    attributes:
+      - objectClass: olcConfig
+      - objectClass: olcMemberOf
+      - objectClass: olcOverlayConfig
+      - objectClass: top
+      - olcOverlay: memberof
+    modaction: add
+    state: present
+  notify:
+    - restart slapd
+
+ - name: ensure ldap membership referential integrity module is enabled
+   ldap:
+     entry_dn: cn=module,cn=config
+     attributes:
+      - cn: module
+      - objectclass: olcModuleList
+      - objectclass: top
+      - olcmoduleload: refint.la
+      - olcmodulepath: /usr/lib/ldap
+    modaction: add
+    state: present
+  notify:
+    - restart slapd
+
+- name: ensure ldap referential integrity overlay is activated for default database
+  ldap:
+    entry_dn: olcOverlay={1}refint,olcDatabase={1}hdb,cn=config
+    attributes:
+      - objectClass: olcConfig
+      - objectClass: olcOverlayConfig
+      - objectClass: olcRefintConfig
+      - objectClass: top
+      - olcOverlay: {1}refint
+      - olcRefintAttribute: memberof member manager owner
+    modaction: add
+    state: present
+  notify:
+    - restart slapd
+
 - name: ensure expected organizational units are present in ldap
   ldap:
     bind_dn: cn=admin,{{ ldap_base_dn }}
