@@ -2,6 +2,7 @@ dn: uid=<user>,<usuffix>,<suffix>
 objectClass: inetOrgPerson
 objectClass: posixAccount
 cn: <user>
+sn: X
 uid: <user>
 uidNumber: <uid>
 gidNumber: <gid>

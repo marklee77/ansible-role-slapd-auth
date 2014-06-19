@@ -134,11 +134,11 @@
   ldap:
     entry_dn: olcDatabase={1}hdb,cn=config
     attributes:
-      - olcAccess: '{0}to attrs=userPassword,shadowLastChange by self write by anonymous auth by dn="cn=admin,{{ ldap_base_dn }}" write by * none'
-      - olcAccess: '{1}to attrs=cn,uid,uidNumber,gidNumber,homeDirectory by dn="cn=admin,{{ ldap_base_dn }}" write by * read'
-      - olcAccess: '{2}to dn.base="" by * read'
-      - olcAccess: '{3}to * by self write by dn="cn=admin,{{ ldap_base_dn }}" write by * read'
-    modify_action: replace
+      - olcAccess: |
+                    {1}to attrs=cn,uid,uidNumber,gidNumber,homeDirectory 
+                      by dn="cn=admin,{{ ldap_base_dn }}" write 
+                      by * read
+    modify_action: add
     state: present
 
 - name: update /etc/ldapscripts configuration from templates
