@@ -1,4 +1,5 @@
 dn: uid=<user>,<usuffix>,<suffix>
+objectClass: person
 objectClass: inetOrgPerson
 objectClass: posixAccount
 cn: <user>
