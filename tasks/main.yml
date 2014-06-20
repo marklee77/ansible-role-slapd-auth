@@ -112,9 +112,27 @@
       - olcLocalSSF: 128
       - olcSecurity: ssf=128
     state: present
-  notify:
-    - restart slapd
   when: ldap_require_ssl
+
+- name: ensure that anonymous binds are not allowed
+  ldap:
+    entry_dn: cn=config
+    attributes:
+      - olcDisallows: bind_anon
+      - olcRequires: authc
+    state: present
+
+- name: ensure users cannot edit attributes that would result in privilege escalation
+  ldap:
+    search_base: cn=config
+    search_filter: '(&(objectClass=olcDatabaseConfig)(olcSuffix={{ ldap_base_dn }}))'
+    attributes:
+      - olcAccess: '{0}to attrs=userPassword,shadowLastChange by self write by dn="cn=admin,{{ ldap_base_dn }}" write by anonymous auth by * none'
+      - olcAccess: '{1}to attrs=cn,uid,uidNumber,gidNumber,homeDirectory by dn="cn=admin,{{ ldap_base_dn }}" write by * read'
+      - olcAccess: '{2}to dn.base="" by * read'
+      - olcAccess: '{3}to * by self write by dn="cn=admin,{{ ldap_base_dn }}" write by users read by * none'
+    modify_action: replace
+    state: present
 
 - name: ensure expected organizational units are present in ldap
   ldap:
@@ -129,17 +147,6 @@
     - users
     - groups
     - machines
-
-- name: ensure users cannot edit attributes that would result in privilege escalation
-  ldap:
-    entry_dn: olcDatabase={1}hdb,cn=config
-    attributes:
-      - olcAccess: |
-                    {1}to attrs=cn,uid,uidNumber,gidNumber,homeDirectory 
-                      by dn="cn=admin,{{ ldap_base_dn }}" write 
-                      by * read
-    modify_action: add
-    state: present
 
 - name: update /etc/ldapscripts configuration from templates
   template:
