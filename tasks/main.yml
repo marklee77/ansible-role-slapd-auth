@@ -6,33 +6,6 @@
     vtype: string
     value: "{{ ldap_domain }}"
 
-#- name: configure ldap organization through debconf
-#  debconf:
-#    name: slapd
-#    question: shared/organization
-#    vtype: string
-#    value: "{{ ldap_domain }}"
-
-# cannot retrieve original value and will not change password without force, so
-# report no change.
-#- name: configure ldap password through debconf
-#  debconf:
-#    name: slapd
-#    question: slapd/password1
-#    vtype: password
-#    value: "{{ ldap_admin_password }}"
-#  changed_when: false
-
-# cannot retrieve original value and will not change password without force, so
-# report no change.
-#- name: confirm ldap password through debconf
-#  debconf:
-#    name: slapd
-#    question: slapd/password2
-#    vtype: password
-#    value: "{{ ldap_admin_password }}"
-#  changed_when: false
-
 - name: ensure ldap server packages are installed
   apt: 
     pkg: "{{ item }}" 
@@ -51,9 +24,6 @@
 #    pkg: slapd
 #    answers:
 #      slapd/domain: "{{ ldap_domain }}"
-#      shared/organization: "{{ ldap_domain }}"
-#      slapd/password1: "{{ ldap_admin_password }}"
-#      slapd/password2: "{{ ldap_admin_password }}"
 
 - name: ensure openldap user exists and is a member of the ssl-cert group
   user:
@@ -260,4 +230,3 @@
     owner: root
     group: root
     mode: 0600
-
