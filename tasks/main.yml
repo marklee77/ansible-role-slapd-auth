@@ -64,7 +64,7 @@
   notify:
     - restart slapd
 
-- name: enforce slapd services in /etc/default/slapd
+- name: configure slapd services in /etc/default/slapd
   lineinfile:
     dest: /etc/default/slapd
     regexp: '^SLAPD_SERVICES='
