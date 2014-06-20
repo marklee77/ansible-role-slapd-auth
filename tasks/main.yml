@@ -122,16 +122,99 @@
       - olcRequires: authc
     state: present
 
+- name: ensure membership overlay module is loaded
+  ldap:
+    entry_dn: cn=module,cn=config
+    search_base: cn=config
+    search_filter: '(olcModuleLoad~=memberof.la)'
+    strip_braces: yes
+    attributes:
+      - cn: module
+      - objectClass: olcModuleList
+      - olcModuleLoad: memberof.la
+      - olcModulePath: /usr/lib/ldap
+    state: present
+  notify:
+    - restart slapd
+
+- name: ensure membership overlay is properly configured
+  ldap:
+    entry_dn: olcOverlay={0}memberof,olcDatabase={1}hdb,cn=config
+    attributes:
+      - objectClass: olcConfig
+      - objectClass: olcMemberOf
+      - objectClass: olcOverlayConfig
+      - olcOverlay: memberof
+    state: present
+
+- name: ensure refint overlay module is loaded
+  ldap:
+    entry_dn: cn=module,cn=config
+    search_base: cn=config
+    search_filter: '(olcModuleLoad~=refint.la)'
+    strip_braces: yes
+    attributes:
+      - cn: module
+      - objectClass: olcModuleList
+      - olcModuleLoad: refint.la
+      - olcModulePath: /usr/lib/ldap
+    state: present
+  notify:
+    - restart slapd
+
+- name: ensure refint overlay is properly configured
+  ldap:
+    entry_dn: olcOverlay={1}refint,olcDatabase={1}hdb,cn=config
+    attributes:
+      - objectClass: olcConfig
+      - objectClass: olcOverlayConfig
+      - objectClass: olcRefintConfig
+      - olcOverlay: '{1}refint'
+      - olcRefintAttribute: memberof member manager owner 
+    state: present
+
+- name: ensure unique overlay module is loaded
+  ldap:
+    entry_dn: cn=module,cn=config
+    search_base: cn=config
+    search_filter: '(olcModuleLoad~=unique.la)'
+    strip_braces: yes
+    attributes:
+      - cn: module
+      - objectClass: olcModuleList
+      - olcModuleLoad: unique.la
+      - olcModulePath: /usr/lib/ldap
+    state: present
+  notify:
+    - restart slapd
+
+- name: ensure unique overlay is properly configured
+  ldap:
+    entry_dn: olcOverlay={2}unique,olcDatabase={1}hdb,cn=config
+    attributes:
+      - objectClass: olcConfig
+      - objectClass: olcOverlayConfig
+      - objectClass: olcUniqueConfig
+      - olcOverlay: '{2}unique'
+      - olcUniqueURI: ldap:///?uid,uidNumber,mail?sub
+    state: present
+  notify:
+    - restart slapd
+  
 - name: ensure users cannot edit attributes that would result in privilege escalation
   ldap:
-    search_base: cn=config
-    search_filter: '(&(objectClass=olcDatabaseConfig)(olcSuffix={{ ldap_base_dn }}))'
+    entry_dn: olcDatabase={1}hdb,cn=config
     attributes:
-      - olcAccess: '{0}to attrs=userPassword,shadowLastChange by self write by dn="cn=admin,{{ ldap_base_dn }}" write by anonymous auth by * none'
-      - olcAccess: '{1}to attrs=cn,uid,uidNumber,gidNumber,homeDirectory by dn="cn=admin,{{ ldap_base_dn }}" write by * read'
-      - olcAccess: '{2}to dn.base="" by * read'
-      - olcAccess: '{3}to * by self write by dn="cn=admin,{{ ldap_base_dn }}" write by users read by * none'
-    modify_action: replace
+      - olcAccess: '{0}to attrs=cn,uid,uidNumber,gidNumber,homeDirectory by dn="cn=admin,{{ ldap_base_dn }}" write by * read'
+    modify_action: add
+    state: present
+
+- name: ensure indexes are configured
+  ldap:
+    entry_dn: olcDatabase={1}hdb,cn=config
+    attributes:
+      - olcDbIndex: uid,uidNumber,gidNumber eq,pres
+    modify_action: add
     state: present
 
 - name: ensure expected organizational units are present in ldap
