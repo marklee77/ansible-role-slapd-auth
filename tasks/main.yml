@@ -146,6 +146,7 @@
   with_items:
     - users
     - groups
+    - services
     - machines
 
 - name: update /etc/ldapscripts configuration from templates
