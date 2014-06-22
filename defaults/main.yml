@@ -11,6 +11,7 @@ ldap_require_ssl: true
 
 ldap_domain: localdomain
 ldap_base_dn: dc=localdomain
+
 ldap_admin_password: password
 ldap_admin_password_hash: "{SSHA}eJNTYUqAuakTkuNFr04V1Y0Sh88PPBIn"
 
