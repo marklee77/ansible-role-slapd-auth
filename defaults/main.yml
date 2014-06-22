@@ -7,6 +7,8 @@ slapd_ssl_ca_cert_file: /etc/ssl/certs/ca-certificates.crt
 slapd_ssl_cert_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
 slapd_ssl_key_file: /etc/ssl/private/ssl-cert-snakeoil.key
 
+ldap_uri: ldapi:///
+
 ldap_require_ssl: true
 
 ldap_domain: localdomain
