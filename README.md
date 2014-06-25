@@ -11,9 +11,12 @@ Role Variables
 - slapd_services: "ldap:/// ldapi:///"
 - slapd_ssl_cipher_suite: SECURE256:!AES-128-CBC:!ARCFOUR-128:!CAMELLIA-128-CBC:!3DES-CBC:!CAMELLIA-128-CBC 
 - slapd_ssl_ca_cert_file: /etc/ssl/certs/ca-certificates.crt
-- slapd_ssl_cert_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
-- slapd_ssl_key_file: /etc/ssl/private/ssl-cert-snakeoil.key
 
+- slapd_hostname: localhost
+- slapd_ssl_cert_file: /etc/ssl/certs/{{ slapd_hostname|replace(".", "_") }}.crt
+- slapd_ssl_key_file: /etc/ssl/private/{{ slapd_hostname|replace(".", "_") }}.key
+
+- ldap_enable_ssl: true
 - ldap_require_ssl: true
 
 - ldap_domain: localdomain
