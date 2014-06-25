@@ -25,6 +25,14 @@
 #    answers:
 #      slapd/domain: "{{ ldap_domain }}"
 
+- name: create self-signed key/certificate pair if required
+  command: >
+            openssl req -newkey rsa:2048 -x509 -days 365 -nodes
+            -subj /CN={{ slapd_hostname }}
+            -out {{ slapd_ssl_cert_file }}
+            -keyout {{ slapd_ssl_key_file }}
+            creates={{ slapd_ssl_cert_file }}
+
 - name: ensure openldap user exists and is a member of the ssl-cert group
   user:
     name: openldap
@@ -67,7 +75,7 @@
     state: present
   notify:
     - restart slapd
-  when: slapd_ssl_cert_file != "" and slapd_ssl_key_file != ""
+  when: ldap_enable_ssl
 
 - name: ensure ssl is not configured in ldap if certificates are not available
   ldap:
@@ -81,7 +89,7 @@
     state: present
   notify:
     - restart slapd
-  when: slapd_ssl_cert_file == "" or slapd_ssl_key_file == ""
+  when: not ldap_enable_ssl
 
 - name: ensure ldap requires ssl if desired
   ldap:
