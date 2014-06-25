@@ -1,6 +1,8 @@
 marklee77.slapd-auth
 ====================
 
+[![Build Status](https://travis-ci.org/marklee77/ansible-role-slapd-auth.svg?branch=master)](https://travis-ci.org/marklee77/ansible-role-slapd-auth)
+
 Role to deploy slapd as auth server.
 
 Role Variables
