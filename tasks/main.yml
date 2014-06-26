@@ -25,20 +25,13 @@
 #    answers:
 #      slapd/domain: "{{ ldap_domain }}"
 
-- name: create local ca and certificate if required
+- name: create tls certificate if required
   shell: >
           openssl req -newkey rsa:2048 -x509 -nodes 
-          -days 365 -subj "/CN={{ slapd_hostname }} CA"
-          -out /usr/local/share/ca-certificates/{{ slapd_hostname|replace(".", "_") }}-ca.crt 
-          -keyout /etc/ssl/private/{{ slapd_hostname|replace(".", "_") }}-ca.key &&
-          update-ca-certificates &&
-          openssl req -newkey rsa:2048 -nodes 
-          -days 365 -subj "/CN={{ slapd_hostname }}" 
-          -keyout {{ slapd_ssl_key_file }} | 
-          openssl x509 -req -CAcreateserial 
-          -CA /usr/local/share/ca-certificates/{{ slapd_hostname|replace(".", "_") }}-ca.crt 
-          -CAkey /etc/ssl/private/{{ slapd_hostname|replace(".", "_") }}-ca.key
+          -days 365 -subj "/CN={{ slapd_hostname }}"
           -out {{ slapd_ssl_cert_file }}
+          -keyout {{ slapd_ssl_key_file }} &&
+          update-ca-certificates 
           creates={{ slapd_ssl_cert_file }}
 
 - name: ensure openldap user exists and is a member of the ssl-cert group
