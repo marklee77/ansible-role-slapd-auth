@@ -9,7 +9,7 @@ slapd_hostname: "{{ ansible_fqdn }}"
 slapd_ssl_cert_file: /usr/local/share/ca-certificates/{{ slapd_hostname|replace(".", "_") }}.crt
 slapd_ssl_key_file: /etc/ssl/private/{{ slapd_hostname|replace(".", "_") }}.key
 
-ldap_uri: ldap:///
+ldap_uri: ldap://{{ slapd_hostname }}/
 
 ldap_enable_ssl: true
 ldap_require_ssl: true
