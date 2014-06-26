@@ -26,12 +26,12 @@
 #      slapd/domain: "{{ ldap_domain }}"
 
 - name: create self-signed key/certificate pair if required
-  command: >
-            openssl req -newkey rsa:2048 -x509 -days 365 -nodes
-            -subj /CN={{ slapd_hostname }}
-            -out {{ slapd_ssl_cert_file }}
-            -keyout {{ slapd_ssl_key_file }}
-            creates={{ slapd_ssl_cert_file }}
+  shell: >
+          openssl req -newkey rsa:2048 -x509 -nodes
+          -days 365 -subj /CN={{ slapd_hostname }}
+          -out {{ slapd_ssl_cert_file }} -keyout {{ slapd_ssl_key_file }} &&
+          update-ca-certificates
+          creates={{ slapd_ssl_cert_file }}
 
 - name: ensure openldap user exists and is a member of the ssl-cert group
   user:
