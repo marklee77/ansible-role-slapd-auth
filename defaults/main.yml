@@ -1,5 +1,7 @@
 ---
 slapd_run_dir: "{{ lookup('env', 'PWD') }}"
+slapd_admin_password: "{{ lookup('password', slapd_run_dir + '/private/credentials/slapd-admin-password') }}"
+slapd_admin_password_salt: "{{ lookup('password', slapd_run_dir + '/private/credentials/slapd-admin-password-salt length=4') }}"
 
 slapd_services: "ldap:/// ldapi:///"
 slapd_domain: localdomain
@@ -12,5 +14,5 @@ slapd_ssl_cipher_suite: SECURE256:!AES-128-CBC:!ARCFOUR-128:!CAMELLIA-128-CBC:!3
 slapd_ssl_cert_file: /usr/local/share/ca-certificates/{{ slapd_ssl_hostname|replace(".", "_") }}.crt
 slapd_ssl_key_file: /etc/ssl/private/{{ slapd_ssl_hostname|replace(".", "_") }}.key
 slapd_ssl_ca_cert_file: /etc/ssl/certs/ca-certificates.crt
-slapd_admin_password: password
-slapd_admin_password_hash: "{SSHA}eJNTYUqAuakTkuNFr04V1Y0Sh88PPBIn"
+
+#slapd_admin_password_hash: "{SSHA}eJNTYUqAuakTkuNFr04V1Y0Sh88PPBIn"

@@ -56,12 +56,12 @@
     name: slapd
     state: started
     enabled: yes
-    
+
 - name: configure root password for default database
   ldap:
     entry_dn: olcDatabase={1}hdb,cn=config
     attributes:
-      - olcRootPW: "{{ slapd_admin_password_hash }}"
+      - olcRootPW: "{{ slapd_admin_password|ssha_password_hash(slapd_admin_password_salt) }}"
     modify_action: replace
     state: present
 
@@ -239,10 +239,4 @@
     owner: root
     group: root
     mode: 0600
-
-- debug:
-    msg: "{{ slapd_admin_password }}"
-
-- debug:
-    msg: "{{ slapd_admin_password|ssha_password_hash('salt') }}"
 
