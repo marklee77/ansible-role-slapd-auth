@@ -1,0 +1,11 @@
+---
+ldap_auth_url: ldap://{{ slapd_ssl_hostname }}/
+ldap_auth_hostname: "{{ slapd_ssl_hostname }}"
+ldap_auth_port: 389
+ldap_auth_method: tls
+ldap_auth_require_ssl: true
+ldap_auth_base_dn: "{{ slapd_base_dn }}"
+ldap_auth_user_filter: objectClass=person
+ldap_auth_uid_attribute: uid
+ldap_auth_displayname_attribute: cn
+ldap_auth_admin_password: "{{ slapd_admin_password }}"

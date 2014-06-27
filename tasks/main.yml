@@ -4,7 +4,7 @@
     name: slapd
     question: slapd/domain
     vtype: string
-    value: "{{ ldap_domain }}"
+    value: "{{ slapd_domain }}"
 
 - name: ensure ldap server packages are installed
   apt: 
@@ -23,7 +23,7 @@
 #  dpkg_reconfigure:
 #    pkg: slapd
 #    answers:
-#      slapd/domain: "{{ ldap_domain }}"
+#      slapd/domain: "{{ slapd_domain }}"
 
 - name: create tls certificate if required
   shell: >
@@ -61,7 +61,7 @@
   ldap:
     entry_dn: olcDatabase={1}hdb,cn=config
     attributes:
-      - olcRootPW: "{{ ldap_admin_password_hash }}"
+      - olcRootPW: "{{ slapd_admin_password_hash }}"
     modify_action: replace
     state: present
 
@@ -76,7 +76,7 @@
     state: present
   notify:
     - restart slapd
-  when: ldap_enable_ssl
+  when: slapd_enable_ssl
 
 - name: ensure ssl is not configured in ldap if certificates are not available
   ldap:
@@ -90,7 +90,7 @@
     state: present
   notify:
     - restart slapd
-  when: not ldap_enable_ssl
+  when: not slapd_enable_ssl
 
 - name: ensure ldap requires ssl if desired
   ldap:
@@ -99,7 +99,7 @@
       - olcLocalSSF: 128
       - olcSecurity: ssf=128
     state: present
-  when: ldap_require_ssl
+  when: slapd_require_ssl
 
 - name: ensure that anonymous binds are not allowed
   ldap:
@@ -192,7 +192,7 @@
   ldap:
     entry_dn: olcDatabase={1}hdb,cn=config
     attributes:
-      - olcAccess: '{0}to attrs=cn,uid,uidNumber,gidNumber,homeDirectory by dn="cn=admin,{{ ldap_base_dn }}" write by * read'
+      - olcAccess: '{0}to attrs=cn,uid,uidNumber,gidNumber,homeDirectory by dn="cn=admin,{{ slapd_base_dn }}" write by * read'
     modify_action: add
     state: present
 
@@ -206,9 +206,9 @@
 
 - name: ensure expected organizational units are present in ldap
   ldap:
-    bind_dn: cn=admin,{{ ldap_base_dn }}
-    bind_password: "{{ ldap_admin_password }}" 
-    entry_dn: ou={{ item }},{{ ldap_base_dn }}
+    bind_dn: cn=admin,{{ slapd_base_dn }}
+    bind_password: "{{ slapd_admin_password }}" 
+    entry_dn: ou={{ item }},{{ slapd_base_dn }}
     attributes:
       - objectClass: organizationalUnit
       - ou: "{{ item }}"
