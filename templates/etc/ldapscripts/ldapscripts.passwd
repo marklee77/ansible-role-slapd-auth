@@ -1,1 +1,1 @@
-{{ ldap_admin_password }}
+{{ ldap_auth_admin_password }}
