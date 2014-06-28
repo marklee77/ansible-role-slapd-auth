@@ -25,7 +25,7 @@
 #    answers:
 #      slapd/domain: "{{ slapd_domain }}"
 
-- name: create tls certificate if required
+- name: create self-signed key/certificate pair if required
   shell: >
           openssl req -newkey rsa:2048 -x509 -nodes 
           -days 365 -subj "/CN={{ slapd_ssl_hostname }}"
