@@ -9,3 +9,5 @@ uidNumber: <uid>
 gidNumber: <gid>
 homeDirectory: <home>
 loginShell: <shell>
+mail: <user>@{{ slapd_domain }}
+userAccountControl: 512
