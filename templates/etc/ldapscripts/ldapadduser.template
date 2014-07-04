@@ -1,5 +1,7 @@
 dn: uid=<user>,<usuffix>,<suffix>
+objectClass: top
 objectClass: person
+objectClass: organizationalPerson
 objectClass: inetOrgPerson
 objectClass: posixAccount
 cn: <user>
@@ -10,4 +12,3 @@ gidNumber: <gid>
 homeDirectory: <home>
 loginShell: <shell>
 mail: <user>@{{ slapd_domain }}
-userAccountControl: 512
