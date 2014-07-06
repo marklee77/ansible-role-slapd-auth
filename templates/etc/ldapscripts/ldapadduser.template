@@ -5,6 +5,7 @@ objectClass: organizationalPerson
 objectClass: inetOrgPerson
 objectClass: posixAccount
 cn: <user>
+displayName: <user>
 sn: X
 uid: <user>
 uidNumber: <uid>
